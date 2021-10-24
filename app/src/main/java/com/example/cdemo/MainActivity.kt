@@ -1,31 +1,19 @@
 package com.example.cdemo
 
-import android.content.Intent
-import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
-import kotlinx.android.synthetic.main.activity_main.*
-
-import android.widget.LinearLayout
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import android.animation.Animator
-
-import android.animation.AnimatorListenerAdapter
-
-import android.R.attr.translationY
-import android.graphics.Color
+import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.core.view.isVisible
-import kotlin.time.minutes
-import android.util.Log
-import android.view.PointerIcon
-
+import kotlinx.android.synthetic.main.activity_main.*
 import me.tankery.lib.circularseekbar.CircularSeekBar
 import me.tankery.lib.circularseekbar.CircularSeekBar.OnCircularSeekBarChangeListener
 import kotlin.math.roundToInt
@@ -46,8 +34,9 @@ class MainActivity : AppCompatActivity() {
 
         var loanAmount: Int = 0
 
+        window.statusBarColor = Color.parseColor("#12141d")
 
-        firstSheet = findViewById<View>(R.id.cardView2)
+        firstSheet = findViewById<View>(R.id.hidden1)
         secondSheet = findViewById<View>(R.id.cardView4)
         thirdSheet = findViewById<View>(R.id.cardView6)
         firstButton = findViewById<View>(R.id.cardView3)
@@ -57,7 +46,12 @@ class MainActivity : AppCompatActivity() {
         hidden1.visibility = GONE
         hidden2.visibility = GONE
 
+        setButtonState(firstButton, firstButtonText, false)
+        setButtonState(secondButton, secondButtonText, false)
+        setButtonState(thirdButton, thirdButtonText, false)
+
         firstSheet.setOnClickListener {
+            Toast.makeText(this, "FirstSheet", Toast.LENGTH_SHORT)
             translateDown(secondSheet)
             translateDown(thirdSheet)
             translateDown(secondButton)
@@ -72,87 +66,117 @@ class MainActivity : AppCompatActivity() {
             hidden2.visibility = GONE
         }
 
+        thirdSheet.setOnClickListener {}
+
         firstButton.setOnClickListener {
-            translateUp(secondSheet)
-            translateUp(secondButton)
-            hidden1.visibility = VISIBLE
+            if (loanAmount < 100) {
+                Toast.makeText(this, "Please apply for value greater than ₹100", Toast.LENGTH_SHORT)
+                    .show()
+            } else {
+                translateUp(secondSheet)
+                translateUp(secondButton)
+                hidden1.visibility = VISIBLE
+            }
         }
 
         secondButton.setOnClickListener {
-            translateUp(thirdSheet)
-            translateUp(thirdButton)
-            hidden2.visibility = VISIBLE
+            if (checkbox1.isChecked || checkbox6.isChecked || checkbox12.isChecked) {
+                translateUp(thirdSheet)
+                translateUp(thirdButton)
+                hidden2.visibility = VISIBLE
+            } else {
+                Toast.makeText(this, "Please select duration for loan", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        thirdButton.setOnClickListener {
+            Toast.makeText(this, "Nothing ahead, end of Demo", Toast.LENGTH_SHORT).show()
+        }
+
+        addAccountButton.setOnClickListener {
+            Toast.makeText(this, "Nothing ahead, end of Demo", Toast.LENGTH_SHORT).show()
         }
 
         secondSheet.post(Runnable {
             secondSheet.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
-            translateDown(secondSheet,0)
-            translateDown(thirdSheet,0)
-            translateDown(secondButton,0)
-            translateDown(thirdButton,0)
+            translateDown(secondSheet, 0)
+            translateDown(thirdSheet, 0)
+            translateDown(secondButton, 0)
+            translateDown(thirdButton, 0)
         })
 
-        checkbox1.setOnClickListener {
-            checkbox12.isChecked = false
-            checkbox6.isChecked = false
-            emiValue.text = emi1month.text
-            durationValue.text = "1 month"
+        checkbox1parent.setOnClickListener {
+            checkbox1.isChecked = true
+        }
+        checkbox6parent.setOnClickListener {
+            checkbox6.isChecked = true
+        }
+        checkbox12parent.setOnClickListener {
+            checkbox12.isChecked = true
         }
 
-        checkbox6.setOnClickListener {
-            checkbox1.isChecked = false
-            checkbox12.isChecked = false
-            emiValue.text = emi6month.text
-            durationValue.text = "6 months"
+        checkbox1.setOnCheckedChangeListener { buttonView, isChecked ->
+            if (isChecked) {
+                checkbox12.isChecked = false
+                checkbox6.isChecked = false
+                emiValue.text = emi1month.text
+                durationValue.text = "1 month"
+                setButtonState(secondButton, secondButtonText, true)
+            }
         }
 
-        checkbox12.setOnClickListener {
-            checkbox1.isChecked = false
-            checkbox6.isChecked = false
-            emiValue.text = emi12month.text
-            durationValue.text = "12 months"
+        checkbox6.setOnCheckedChangeListener { buttonView, isChecked ->
+            if (isChecked) {
+                checkbox1.isChecked = false
+                checkbox12.isChecked = false
+                emiValue.text = emi6month.text
+                durationValue.text = "6 months"
+                setButtonState(secondButton, secondButtonText, true)
+
+            }
+        }
+
+        checkbox12.setOnCheckedChangeListener { buttonView, isChecked ->
+            if (isChecked) {
+                checkbox1.isChecked = false
+                checkbox6.isChecked = false
+                emiValue.text = emi12month.text
+                durationValue.text = "12 months"
+                setButtonState(secondButton, secondButtonText, true)
+            }
         }
 
         seek_bar.circleProgressColor = Color.parseColor("#df997f")
         seek_bar.circleColor = Color.parseColor("#fee8e0")
         seek_bar.pointerColor = Color.parseColor("#302A2B")
-        //seek_bar.pointerIcon = PointerIcon.getSystemIcon(this, R.drawable.ic_down_arrow)
         seek_bar.setOnSeekBarChangeListener(object : OnCircularSeekBarChangeListener {
             override fun onProgressChanged(circularSeekBar: CircularSeekBar, progress: Float, fromUser: Boolean) {
                 Log.d("Main", progress.toString())
-                loanAmount = (progress*100).roundToInt()
-                amountText.text = "₹$loanAmount"
-                emi1month.text = "₹$loanAmount / mo"
-                emi6month.text = "₹${(loanAmount/6)} /mo"
-                emi12month.text = "₹${loanAmount/12} /mo"
+                loanAmount = (progress * 100).roundToInt()
+                if (loanAmount > 100) {
+                    setButtonState(firstButton, firstButtonText,true)
+                    loanAmountHidden.text = "₹$loanAmount"
+                    amountText.text = "₹$loanAmount"
+                    emi1month.text = "₹$loanAmount / mo"
+                    emi6month.text = "₹${(loanAmount / 6)} /mo"
+                    emi12month.text = "₹${loanAmount / 12} /mo"
+                } else
+                    setButtonState(firstButton, firstButtonText, false)
             }
 
             override fun onStopTrackingTouch(seekBar: CircularSeekBar) {
                 Log.d("Main", "onStopTrackingTouch")
-                //textEvent.setText("")
             }
 
             override fun onStartTrackingTouch(seekBar: CircularSeekBar) {
                 Log.d("Main", "onStartTrackingTouch")
-                //textEvent.setText("touched | ")
             }
         })
 
     }
 
     override fun onBackPressed() {
-        //super.onBackPressed()
-     /*   if (thirdSheet.isVisible) {
-            translateDown(thirdSheet)
-            translateDown(thirdButton)
-        } else if (secondSheet.isVisible) {
-            translateDown(secondSheet)
-            translateDown(secondButton)
-        } else {
-            super.onBackPressed()
-        }*/
-
-        when{
+        when {
             thirdSheet.isVisible -> {
                 translateDown(thirdSheet)
                 translateDown(thirdButton)
@@ -167,6 +191,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun setButtonState(buttonCardView: View, buttonTextView: View, isEnabled: Boolean) {
+        if (isEnabled) {
+            (buttonCardView as CardView).setCardBackgroundColor(Color.parseColor("#3a45a1"))
+            (buttonTextView as TextView).setTextColor(Color.parseColor("#fee8e0"))
+        } else {
+            (buttonCardView as CardView).setCardBackgroundColor(Color.parseColor("#282f5d"))
+            (buttonTextView as TextView).setTextColor(Color.parseColor("#6B5B62"))
+        }
+    }
 
     private fun translateDown(view: View, time: Int = 300) {
         view.animate().translationY(view.height.toFloat())
@@ -191,89 +224,5 @@ class MainActivity : AppCompatActivity() {
                     view.visibility = VISIBLE
                 }
             })
-    }
-
-    private fun setupBottomSheetDialogs() {
-        val firstBottomSheetDialog = BottomSheetDialog(this)
-        val secondBottomSheetDialog = BottomSheetDialog(this)
-        val thirdBottomSheetDialog = BottomSheetDialog(this)
-
-        firstBottomSheetDialog.setContentView(R.layout.first_bottom_sheet)
-        secondBottomSheetDialog.setContentView(R.layout.second_bottom_sheet)
-        thirdBottomSheetDialog.setContentView(R.layout.third_bottom_sheet)
-
-        val copy1 = firstBottomSheetDialog.findViewById<LinearLayout>(R.id.copyLinearLayout)
-        val copy2 = secondBottomSheetDialog.findViewById<LinearLayout>(R.id.copyLinearLayout)
-        val copy3 = thirdBottomSheetDialog.findViewById<LinearLayout>(R.id.copyLinearLayout)
-
-        firstBottomSheetDialog.show()
-
-        copy1?.setOnClickListener {
-            secondBottomSheetDialog.show()
-        }
-
-        copy2?.setOnClickListener {
-            thirdBottomSheetDialog.show()
-        }
-
-        copy3?.setOnClickListener {
-            thirdBottomSheetDialog.dismiss()
-            secondBottomSheetDialog.dismiss()
-        }
-    }
-
-    private fun setCardBackgroundColor(view: View, viewColor: String) {
-        (view as CardView).setCardBackgroundColor(Color.parseColor(viewColor))
-    }
-
-    private fun showBottomSheetDialog(): BottomSheetDialog {
-        //How much BottomSheet
-        val bottomSheetDialog = BottomSheetDialog(this)
-        bottomSheetDialog.setContentView(R.layout.first_bottom_sheet)
-        bottomSheetDialog.behavior.peekHeight = 1000
-        val copy = bottomSheetDialog.findViewById<LinearLayout>(R.id.copyLinearLayout)
-        val share = bottomSheetDialog.findViewById<LinearLayout>(R.id.shareLinearLayout)
-        val upload = bottomSheetDialog.findViewById<LinearLayout>(R.id.uploadLinearLaySout)
-        val download = bottomSheetDialog.findViewById<LinearLayout>(R.id.download)
-        val delete = bottomSheetDialog.findViewById<LinearLayout>(R.id.delete)
-        bottomSheetDialog.show()
-
-        copy?.setOnClickListener {
-            showSecondBottomSheetDialog()
-        }
-        return bottomSheetDialog
-    }
-
-    private fun showSecondBottomSheetDialog() {
-        //Pick your Repayment BottomSheet
-        val bottomSheetDialog = BottomSheetDialog(this)
-        bottomSheetDialog.setContentView(R.layout.second_bottom_sheet)
-        val copy = bottomSheetDialog.findViewById<LinearLayout>(R.id.copyLinearLayout)
-        val share = bottomSheetDialog.findViewById<LinearLayout>(R.id.shareLinearLayout)
-        val upload = bottomSheetDialog.findViewById<LinearLayout>(R.id.uploadLinearLaySout)
-        val download = bottomSheetDialog.findViewById<LinearLayout>(R.id.download)
-        val delete = bottomSheetDialog.findViewById<LinearLayout>(R.id.delete)
-        bottomSheetDialog.show()
-
-        copy?.setOnClickListener {
-            showThirdBottomSheetDialog()
-        }
-    }
-
-    private fun showThirdBottomSheetDialog() {
-        //PAdd your Bank Account BottomSheet
-        val bottomSheetDialog = BottomSheetDialog(this)
-        bottomSheetDialog.setContentView(R.layout.third_bottom_sheet)
-        val copy = bottomSheetDialog.findViewById<LinearLayout>(R.id.copyLinearLayout)
-        val share = bottomSheetDialog.findViewById<LinearLayout>(R.id.shareLinearLayout)
-        val upload = bottomSheetDialog.findViewById<LinearLayout>(R.id.uploadLinearLaySout)
-        val download = bottomSheetDialog.findViewById<LinearLayout>(R.id.download)
-        val delete = bottomSheetDialog.findViewById<LinearLayout>(R.id.delete)
-        bottomSheetDialog.show()
-
-        share?.setOnClickListener {
-            bottomSheetDialog.dismiss()
-            bottomSheetDialog.dismiss()
-        }
     }
 }
