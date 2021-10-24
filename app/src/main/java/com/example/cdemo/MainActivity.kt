@@ -160,8 +160,10 @@ class MainActivity : AppCompatActivity() {
                     emi1month.text = "₹$loanAmount / mo"
                     emi6month.text = "₹${(loanAmount / 6)} /mo"
                     emi12month.text = "₹${loanAmount / 12} /mo"
-                } else
+                } else{
+                    amountText.text = "₹$loanAmount"
                     setButtonState(firstButton, firstButtonText, false)
+                }
             }
 
             override fun onStopTrackingTouch(seekBar: CircularSeekBar) {
