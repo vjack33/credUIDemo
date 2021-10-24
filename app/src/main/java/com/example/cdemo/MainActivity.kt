@@ -19,9 +19,16 @@ import android.animation.AnimatorListenerAdapter
 
 import android.R.attr.translationY
 import android.graphics.Color
+import android.widget.Toast
 import androidx.cardview.widget.CardView
 import androidx.core.view.isVisible
 import kotlin.time.minutes
+import android.util.Log
+import android.view.PointerIcon
+
+import me.tankery.lib.circularseekbar.CircularSeekBar
+import me.tankery.lib.circularseekbar.CircularSeekBar.OnCircularSeekBarChangeListener
+import kotlin.math.roundToInt
 
 
 class MainActivity : AppCompatActivity() {
@@ -32,9 +39,12 @@ class MainActivity : AppCompatActivity() {
     lateinit var secondButton: View
     lateinit var thirdButton: View
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        var loanAmount: Int = 0
 
 
         firstSheet = findViewById<View>(R.id.cardView2)
@@ -44,27 +54,34 @@ class MainActivity : AppCompatActivity() {
         secondButton = findViewById<View>(R.id.cardView7)
         thirdButton = findViewById<View>(R.id.cardView8)
 
+        hidden1.visibility = GONE
+        hidden2.visibility = GONE
 
         firstSheet.setOnClickListener {
             translateDown(secondSheet)
             translateDown(thirdSheet)
             translateDown(secondButton)
             translateDown(thirdButton)
+            hidden1.visibility = GONE
+            hidden2.visibility = GONE
         }
 
         secondSheet.setOnClickListener {
             translateDown(thirdSheet)
             translateDown(thirdButton)
+            hidden2.visibility = GONE
         }
 
         firstButton.setOnClickListener {
             translateUp(secondSheet)
             translateUp(secondButton)
+            hidden1.visibility = VISIBLE
         }
 
         secondButton.setOnClickListener {
             translateUp(thirdSheet)
             translateUp(thirdButton)
+            hidden2.visibility = VISIBLE
         }
 
         secondSheet.post(Runnable {
@@ -74,6 +91,53 @@ class MainActivity : AppCompatActivity() {
             translateDown(secondButton,0)
             translateDown(thirdButton,0)
         })
+
+        checkbox1.setOnClickListener {
+            checkbox12.isChecked = false
+            checkbox6.isChecked = false
+            emiValue.text = emi1month.text
+            durationValue.text = "1 month"
+        }
+
+        checkbox6.setOnClickListener {
+            checkbox1.isChecked = false
+            checkbox12.isChecked = false
+            emiValue.text = emi6month.text
+            durationValue.text = "6 months"
+        }
+
+        checkbox12.setOnClickListener {
+            checkbox1.isChecked = false
+            checkbox6.isChecked = false
+            emiValue.text = emi12month.text
+            durationValue.text = "12 months"
+        }
+
+        seek_bar.circleProgressColor = Color.parseColor("#df997f")
+        seek_bar.circleColor = Color.parseColor("#fee8e0")
+        seek_bar.pointerColor = Color.parseColor("#302A2B")
+        //seek_bar.pointerIcon = PointerIcon.getSystemIcon(this, R.drawable.ic_down_arrow)
+        seek_bar.setOnSeekBarChangeListener(object : OnCircularSeekBarChangeListener {
+            override fun onProgressChanged(circularSeekBar: CircularSeekBar, progress: Float, fromUser: Boolean) {
+                Log.d("Main", progress.toString())
+                loanAmount = (progress*100).roundToInt()
+                amountText.text = "₹$loanAmount"
+                emi1month.text = "₹$loanAmount / mo"
+                emi6month.text = "₹${(loanAmount/6)} /mo"
+                emi12month.text = "₹${loanAmount/12} /mo"
+            }
+
+            override fun onStopTrackingTouch(seekBar: CircularSeekBar) {
+                Log.d("Main", "onStopTrackingTouch")
+                //textEvent.setText("")
+            }
+
+            override fun onStartTrackingTouch(seekBar: CircularSeekBar) {
+                Log.d("Main", "onStartTrackingTouch")
+                //textEvent.setText("touched | ")
+            }
+        })
+
     }
 
     override fun onBackPressed() {
@@ -92,10 +156,12 @@ class MainActivity : AppCompatActivity() {
             thirdSheet.isVisible -> {
                 translateDown(thirdSheet)
                 translateDown(thirdButton)
+                hidden2.visibility = GONE
             }
             secondSheet.isVisible -> {
                 translateDown(secondSheet)
                 translateDown(secondButton)
+                hidden1.visibility = GONE
             }
             else -> super.onBackPressed()
         }
